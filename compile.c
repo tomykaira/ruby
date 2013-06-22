@@ -222,7 +222,7 @@ r_value(VALUE value)
   do { \
       if ((event) == RUBY_EVENT_LINE && iseq->coverage && \
 	  (line) != iseq->compile_data->last_coverable_line) { \
-	  RARRAY_ASET(iseq->coverage, (line) - 1, INT2FIX(0)); \
+	  RARRAY_ASET(RARRAY_AREF(iseq->coverage, 0), (line) - 1, INT2FIX(0)); \
 	  iseq->compile_data->last_coverable_line = (line); \
 	  ADD_INSN1((seq), (line), trace, INT2FIX(RUBY_EVENT_COVERAGE)); \
       } \

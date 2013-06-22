@@ -880,7 +880,16 @@ trace_if
 ()
 ()
 {
-    printf("line: %d if: %d %s\n", rb_sourceline(), FIX2INT(if_id), thenp == Qtrue ? "true" : "false");
+    VALUE coverage = GET_THREAD()->cfp->iseq->coverage;
+    if (coverage) {
+	VALUE if_coverage = RARRAY_AREF(coverage, 1);
+	VALUE key = rb_ary_new_from_args(3, INT2FIX(rb_sourceline()), if_id, thenp);
+	VALUE current = rb_hash_aref(if_coverage, key);
+	if (current == Qnil) {
+	    current = INT2FIX(0);
+	}
+	rb_hash_aset(if_coverage, key, INT2FIX(FIX2INT(current) + 1));
+    }
 }
 
 /**********************************************************/
@@ -2157,4 +2166,3 @@ answer
 {
     ret = INT2FIX(42);
 }
-

@@ -36,12 +36,15 @@ static int
 coverage_result_i(st_data_t key, st_data_t val, st_data_t h)
 {
     VALUE path = (VALUE)key;
-    VALUE coverage = (VALUE)val;
+    VALUE coverage_line = RARRAY_AREF(val, 0);
+    VALUE coverage_if   = RARRAY_AREF(val, 1);
     VALUE coverages = (VALUE)h;
-    coverage = rb_ary_dup(coverage);
     rb_ary_clear((VALUE)val);
-    rb_ary_freeze(coverage);
-    rb_hash_aset(coverages, path, coverage);
+    coverage_line = rb_ary_dup(coverage_line);
+    coverage_if   = rb_hash_dup(coverage_if);
+    rb_ary_freeze(coverage_line);
+    rb_ary_freeze(coverage_if);
+    rb_hash_aset(coverages, path, rb_ary_new_from_args(2, coverage_line, coverage_if));
     return ST_CONTINUE;
 }
 

@@ -5295,11 +5295,12 @@ coverage(const char *f, int n)
     if (RTEST(coverages) && RBASIC(coverages)->klass == 0) {
 	VALUE fname = rb_external_str_new_with_enc(f, strlen(f), rb_filesystem_encoding());
 	VALUE lines = rb_ary_new2(n);
+	VALUE ifs = rb_hash_new();
 	int i;
 	RBASIC_CLEAR_CLASS(lines);
 	for (i = 0; i < n; i++) RARRAY_ASET(lines, i, Qnil);
 	RARRAY(lines)->as.heap.len = n;
-	rb_hash_aset(coverages, fname, lines);
+	rb_hash_aset(coverages, fname, rb_ary_new_from_args(2, lines, ifs));
 	return lines;
     }
     return 0;
