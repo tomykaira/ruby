@@ -869,6 +869,20 @@ trace
 		    (flag & (RUBY_EVENT_RETURN | RUBY_EVENT_B_RETURN)) ? TOPN(0) : Qundef);
 }
 
+/**
+  @c setting
+  @e trace for if
+  @j if を trace するための命令。
+ */
+DEFINE_INSN
+trace_if
+(VALUE if_id, VALUE thenp)
+()
+()
+{
+    printf("line: %d if: %d %s\n", rb_sourceline(), FIX2INT(if_id), thenp == Qtrue ? "true" : "false");
+}
+
 /**********************************************************/
 /* deal with control flow 1: class/module                 */
 /**********************************************************/

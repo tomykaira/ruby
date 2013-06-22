@@ -3200,6 +3200,8 @@ iseq_compile_each(rb_iseq_t *iseq, LINK_ANCHOR *ret, NODE * node, int poped)
 	break;
       }
       case NODE_IF:{
+	static int int_id = 0;
+	static int last_if_line = 0;
 	DECL_ANCHOR(cond_seq);
 	DECL_ANCHOR(then_seq);
 	DECL_ANCHOR(else_seq);
@@ -3217,13 +3219,22 @@ iseq_compile_each(rb_iseq_t *iseq, LINK_ANCHOR *ret, NODE * node, int poped)
 	COMPILE_(then_seq, "then", node->nd_body, poped);
 	COMPILE_(else_seq, "else", node->nd_else, poped);
 
+	if (last_if_line != line) {
+	  last_if_line = line;
+	  int_id = 0;
+	} else {
+	  ++int_id;
+	}
+
 	ADD_SEQ(ret, cond_seq);
 
 	ADD_LABEL(ret, then_label);
+	ADD_INSN2(ret, line, trace_if, INT2FIX(int_id), Qtrue);
 	ADD_SEQ(ret, then_seq);
 	ADD_INSNL(ret, line, jump, end_label);
 
 	ADD_LABEL(ret, else_label);
+	ADD_INSN2(ret, line, trace_if, INT2FIX(int_id), Qfalse);
 	ADD_SEQ(ret, else_seq);
 
 	ADD_LABEL(ret, end_label);
