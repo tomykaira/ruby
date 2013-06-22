@@ -3154,6 +3154,18 @@ setup_args(rb_iseq_t *iseq, LINK_ANCHOR *args, NODE *argn, VALUE *flag)
     return argc;
 }
 
+static void
+add_insn_trace_if(rb_iseq_t *iseq, LINK_ANCHOR *ret, int line, int if_id, VALUE thenp)
+{
+    VALUE coverage = iseq->coverage;
+    if (coverage) {
+	VALUE if_coverage = RARRAY_AREF(coverage, 1);
+	VALUE id_value = INT2FIX(if_id);
+	VALUE key = rb_ary_new_from_args(3, INT2FIX(line), id_value, thenp);
+	rb_hash_aset(if_coverage, key, INT2FIX(0));
+	ADD_INSN2(ret, line, trace_if, id_value, thenp);
+    }
+}
 
 /**
   compile each node
@@ -3200,7 +3212,7 @@ iseq_compile_each(rb_iseq_t *iseq, LINK_ANCHOR *ret, NODE * node, int poped)
 	break;
       }
       case NODE_IF:{
-	static int int_id = 0;
+	static int if_id = 0;
 	static int last_if_line = 0;
 	DECL_ANCHOR(cond_seq);
 	DECL_ANCHOR(then_seq);
@@ -3221,20 +3233,20 @@ iseq_compile_each(rb_iseq_t *iseq, LINK_ANCHOR *ret, NODE * node, int poped)
 
 	if (last_if_line != line) {
 	  last_if_line = line;
-	  int_id = 0;
+	  if_id = 0;
 	} else {
-	  ++int_id;
+	  ++if_id;
 	}
 
 	ADD_SEQ(ret, cond_seq);
 
 	ADD_LABEL(ret, then_label);
-	ADD_INSN2(ret, line, trace_if, INT2FIX(int_id), Qtrue);
+	add_insn_trace_if(iseq, ret, line, if_id, Qtrue);
 	ADD_SEQ(ret, then_seq);
 	ADD_INSNL(ret, line, jump, end_label);
 
 	ADD_LABEL(ret, else_label);
-	ADD_INSN2(ret, line, trace_if, INT2FIX(int_id), Qfalse);
+	add_insn_trace_if(iseq, ret, line, if_id, Qfalse);
 	ADD_SEQ(ret, else_seq);
 
 	ADD_LABEL(ret, end_label);
